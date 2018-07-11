@@ -175,7 +175,10 @@ function getImageThumbnailThrottled(url, cb, passURL) {
      }
    }
 
-   if (passURL) {
+   if(imageInfo[url].thumb || !isVisible(imageInfo[url].elem)) {
+     if(imageInfo[url].thumb === '') { imageInfo[url].thumb = undefined; }
+     finishedCb();
+   } else if (passURL) {
      getThumbFromFullImage(url, function(url) {
        cb(url);
        finishedCb();
@@ -189,6 +192,30 @@ function getImageThumbnailThrottled(url, cb, passURL) {
   }
 }
 
+function isVisible(elem) {
+  var viewport = elem.getBoundingClientRect();
+  if ( viewport.width > 0 && (viewport.top >=0 && viewport.top < window.innerHeight || viewport.bottom >=0 && viewport.bottom < window.innerHeight) && (viewport.left >=0 && viewport.left < window.innerWidth || viewport.right >=0 && viewport.right < window.innerWidth) ) {
+    return true;
+  }
+  return false;
+}
+
+function getImageThumbnailVisibleCheckAll() {
+   // if unthrottled images are visible, then send to getImageThumbnailThrottled
+   for (var url in imageInfo) {
+       if(imageInfo[url].thumb === undefined && isVisible(imageInfo[url].elem)) {
+           // change thumb to '' to prevent duplicate thumb load
+           imageInfo[url].thumb = '';
+           getImageThumbnailThrottled(url, imageInfo[url].cb);
+       }
+   }
+}
+
+function getImageThumbnailVisible(elem, url, cb) {
+    imageInfo[url].elem = elem;
+    imageInfo[url].cb = cb;
+}
+
 function addDeferredThumb(thumbs, href) {
   var niceName;
   if (href.lastIndexOf("/")>=0)
@@ -197,6 +224,7 @@ function addDeferredThumb(thumbs, href) {
     niceName = href;
 
   function thumbLoaded(url, rotate) {
+    if(imageInfo[url] && imageInfo[url].thumb) { return; }
     imageInfo[href].thumb = url;
     im.innerHTML =
       '<div class="thumbimage" style="background-image:url('+url+');transform:rotate('+rotate+'deg)"></div>'+
@@ -209,7 +237,7 @@ function addDeferredThumb(thumbs, href) {
   im.setAttribute("href", href);
   im.onclick = onThumbClicked;
   im = thumbs.appendChild(im);
-  getImageThumbnailThrottled(href, function(url,rotate) {
+  getImageThumbnailVisible(im, href, function(url,rotate) {
     if (url == href) {
       // We use getImageThumbnailThrottled so we can make sure
       // that full images get loaded AFTER all the thumbnails
