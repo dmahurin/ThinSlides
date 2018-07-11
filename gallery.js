@@ -21,21 +21,37 @@ var imageInfo = {};
 
 // Get a thumbnail from EXIF data
 function getThumbFromFullImage(url, callback) {
-  var img = document.createElement('img');
+  if (url.substr(-4).toLowerCase()==".mp4" || url.substr(-5).toLowerCase()==".mts" || url.substr(-4).toLowerCase()==".mov") {
+    var img = document.createElement('video');
+  } else {
+    var img = document.createElement('img');
+  }
+
   img.onload = function () {
+    var w = this.videoWidth || img.width;
+    var h = this.videoHeight || img.height;
     var oc = document.createElement('canvas'),
         octx = oc.getContext('2d');
     if (img.width > img.height) {
       oc.width = THUMB_SIZE;
-      oc.height = THUMB_SIZE * img.height / img.width;
+      oc.height = THUMB_SIZE * h / w;
     } else {
-      oc.width = THUMB_SIZE * img.width / img.height;
+      oc.width = THUMB_SIZE * w / h;
       oc.height = THUMB_SIZE;
     }
     octx.drawImage(img, 0, 0, oc.width, oc.height);
     callback(oc.toDataURL());
   };
+
+  if (img.tagName != "VIDEO") {
   img.src = url;
+  } else {
+  img.addEventListener('loadeddata', img.onload);
+  img.preload = 'metadata';
+  img.controls = true;
+  img.muted = true;
+  img.src = url;
+  }
 }
 
 // Get a thumbnail from EXIF data
