@@ -44,6 +44,7 @@ function indexLoaded(dirURL, responseXML) {
 		// change url to relative and skip non children
 		if(url.indexOf(basePath) === 0) { url = url.slice(basePath.length); } else { continue; }
 		if(url.indexOf(dirURL) !== 0 || url.length <= dirURL.length) continue;
+		if(url.charAt(dirURL.length) == '.') { continue; }
 		if ( url[url.length-1]=="/") {
 			newdirs.push(url);
 		} else {
