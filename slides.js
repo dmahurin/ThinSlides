@@ -179,6 +179,46 @@ function runSlides() {
 			showSlide({});
 		}
 	});
+
+	var touchx;
+	var touchy;
+
+	function touchstart_handler(e) {
+		if(e.touches !== undefined) {
+			e = e.touches[0];
+			body.removeEventListener('mousedown', touchstart_handler);
+			body.removeEventListener('mouseup', touchend_handler);
+		}
+		touchx = e.clientX;
+		touchy = e.clientY;
+		return false;
+	}
+
+	function touchend_handler(e) {
+		if(e.changedTouches !== undefined) { e = e.changedTouches[0]; }
+		var touchxdelta = e.clientX - touchx;
+		var touchydelta = e.clientY - touchy;
+		touchx = undefined;
+		touchy = undefined;
+
+		if(touchxdelta <= -10) {
+			showSlide({next: true});
+		} else if(touchxdelta < 10) {
+			showSlide({play: true, next: true});
+		} else {
+			aud.pause();
+			if(current <= 0) return;
+			current--;
+			showSlide({});
+		}
+	}
+
+	document.body.ondragstart= function() {return false;}
+	document.body.ondrop=function() {return false;}
+	document.body.addEventListener("touchstart", touchstart_handler);
+	document.body.addEventListener("touchend", touchend_handler);
+	document.body.addEventListener("mousedown", touchstart_handler);
+	document.body.addEventListener("mouseup", touchend_handler);
 }
 
 window.onload = load;
