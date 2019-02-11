@@ -101,6 +101,7 @@ function showIndex(url) {
 
 function addFiles(files) {
 	var afiles = [];
+	var aud = new Audio();
 	for (var i in files) {
 		var file = files[i];
 		var ext = (file.indexOf('.') >= 0 ? file.slice(file.lastIndexOf('.')+1) : '').toLowerCase();
@@ -110,6 +111,8 @@ function addFiles(files) {
 			var filebase = file.substr(0, file.lastIndexOf('.'));
 			slides_lookup[filebase] = file;
 		} else if ( ext == 'flac' || ext == 'wav' || ext == 'mp3' || ext == 'm4a' ) {
+			if(ext == 'flac' && aud.canPlayType('audio/ogg; codecs=flac') == '') continue;
+			if(ext == 'mp3' && aud.canPlayType('audio/mpeg') == '') continue;
 			afiles.push(file);
 		}
 	}
