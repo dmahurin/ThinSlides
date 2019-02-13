@@ -2,12 +2,11 @@
   --thumb-width: 240px;
   --thumb-height: 240px;
 }
-
-        body {
+        .thumbs {
          color: white;
          background-color: black;
         }
- 	a > .thumb { color: #fff; }
+        a > .thumb { color: #fff; }
         .thumb {
           position: relative;
           display: inline-block;

@@ -5,17 +5,6 @@ var slides = [];
 var slides_lookup = [];
 var slide_audio = [];
 
-function load() {
-	var url = '';
-
-	if (window.location.search.length>1) {
-		url = window.location.search.substr(1);
-	}
-
-	folders.push(url);
-	loadNextIndex(function() { showIndex(url); });
-}
-
 function loadNextIndex(cb) {
 	if(folders.length == 0) return;
 	var url = folders.shift();
@@ -81,7 +70,7 @@ function showIndex(url) {
 	body.appendChild(h3);
 	body.addEventListener("keydown", function(e) {
 		if (e.keyCode==13 || e.keyCode == 32 || e.keyCode == 27) {
-			runSlides();
+			showSlides();
 		}
 	});
 	for (var i in slides) {
@@ -90,13 +79,48 @@ function showIndex(url) {
 		link.href = 'javascript:void(0)';
 		(function() {
 			var this_i = +i;
-			link.onclick = function() { current = this_i; runSlides(); return false; }
+			link.onclick = function() { current = this_i; showSlides(); return false; }
 		})();
 		link.innerText = file;
 		body.appendChild(link);
 		body.appendChild(document.createElement('br'));
 	}
 	document.body = body;
+}
+
+function showGallery(gallery) {
+	var body = document.createElement("body");
+	body.className = 'thumbs';
+	var thumbs = document.createElement("div");
+	body.appendChild(thumbs);
+
+	for (var i in folders) {
+		addFolder(thumbs, folders[i]);
+	}
+	for (var i in slides) {
+		var href = slides[i];
+		var hrefl = href.toLowerCase();
+		if (hrefl.substr(-4)==".jpg" || hrefl.substr(-5)==".jpeg" || hrefl.substr(-4)==".png" || hrefl.substr(-4)==".mp4" || hrefl.substr(-4)==".mts" || hrefl.substr(-4)==".mov") {
+			imageInfo[href] = { thumb : undefined, index: +i };
+			addDeferredThumb(thumbs, href);
+		}
+	}
+
+	body.addEventListener("keydown", function(e) {
+		if (e.keyCode==13 || e.keyCode == 32 || e.keyCode == 27) {
+			showSlides();
+		}
+	});
+	addEventListener('resize', getImageThumbnailVisibleCheckAll, false);
+	addEventListener('scroll', getImageThumbnailVisibleCheckAll, false);
+	document.body = body;
+	getImageThumbnailVisibleCheckAll();
+}
+function onThumbClicked(e) {
+	e.preventDefault();
+	var url = e.currentTarget.getAttribute("href");
+	current = imageInfo[url].index;
+	showSlides();
 }
 
 function addFiles(files) {
@@ -123,7 +147,7 @@ function addFiles(files) {
 	}
 }
 
-function runSlides() {
+function showSlides() {
 	var body = document.createElement("body");
 	var img = document.createElement("img");
 	var style = document.createElement('style');
@@ -220,5 +244,3 @@ function runSlides() {
 	document.body.addEventListener("mousedown", touchstart_handler);
 	document.body.addEventListener("mouseup", touchend_handler);
 }
-
-window.onload = load;
