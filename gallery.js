@@ -151,6 +151,12 @@ function getEXIFThumb(url, arraybuffer, callback) {
 
 function getImageThumbnail(url, finishedCb, thumbCb) {
   //console.log("Loading "+url);
+  if (url.substr(-4).toLowerCase()==".mp4" || url.substr(-5).toLowerCase()==".mts" || url.substr(-4).toLowerCase()==".mov") {
+      thumbCb(url);
+      finishedCb();
+      return;
+  }
+
   var xhr = new XMLHttpRequest;
   xhr.open('GET', url, true);
   xhr.responseType = "arraybuffer";
