@@ -1,0 +1,41 @@
+:root {
+  --thumb-width: 240px;
+  --thumb-height: 240px;
+}
+
+        body {
+         color: white;
+         background-color: black;
+        }
+ 	a > .thumb { color: #fff; }
+        .thumb {
+          position: relative;
+          display: inline-block;
+          width:var(--thumb-width); height:var(--thumb-height);
+          margin: 4px;
+          cursor: pointer;
+          overflow: hidden;
+        }
+       .caption {
+         text-align: center;
+         font-size: 80%;
+         font-family: Helvetica, Arial, Sans-Serif;
+         text-shadow: 1px 0 0 #000, 0 -1px 0 #000, 0 1px 0 #000, -1px 0 0 #000;
+         position: absolute;
+         width:var(--thumb-width);
+         bottom:0px;
+       }
+       .thumbicon {
+         position: absolute;
+         font-size:48px;
+         left:50%;
+         top:50%;
+         transform: translateX(-50%) translateY(-50%);
+       }
+       .thumbimage {
+          position:absolute;top:0px;left:0px;
+          width:var(--thumb-width); height:var(--thumb-height);
+          background-position: center;
+          background-repeat: no-repeat;
+          background-size: contain;
+       }
