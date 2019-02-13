@@ -143,6 +143,7 @@ function addFiles(files) {
 		var file = files[i];
 		var ext = (file.indexOf('.') >= 0 ? file.slice(file.lastIndexOf('.')+1) : '').toLowerCase();
 		if ( ext == 'jpg' || ext == 'jpeg' || ext == 'png' || ext == 'mp4' || ext == 'mts' || ext == 'mov' ) {
+			if(ext == 'mp4' || ext == 'mts' || ext == 'mov') slide_audio[file] = '';
 			slides.push(file);
 			slides_lookup[file] = file;
 			var filebase = file.substr(0, file.lastIndexOf('.'));
@@ -162,44 +163,66 @@ function addFiles(files) {
 
 function showSlides() {
 	var body = document.createElement("body");
+	body.style['margin'] = 0; body.style['height'] = '100%'; body.style['background-color'] = 'black';
 	var img = document.createElement("img");
+	img.className = 'fullscreen';
+	var video = document.createElement("video");
+	video.className = 'fullscreen';
+	video.style.visibility = 'hidden';
 	var style = document.createElement('style');
 	style.appendChild(document.createTextNode(
-		'html, body { margin:0; height:100%; background-color: black; }' + "\n" +
-		'img { display:block; width:100%; height:100%; margin:0 auto; object-fit: contain; }'
+		'.fullscreen { display:block; width:100%; height:100%; margin:0 auto; object-fit: contain; position: absolute; left: 0; top: 0 }'
 	));
 
 	body.appendChild(style);
 
 	body.appendChild(img);
+	body.appendChild(video);
 	var aud = new Audio();
 
 	function showSlide(p) {
 		var next = current;
+		var media = (slide_audio[slides[current]] === '') ? video : aud;
 		// if playing and no audio, go to next.if audio ended or error go to next. if paused and not at start go to next.
-		if(p.next && current < slides.length && (p.play != true || slide_audio[slides[current]] === undefined || aud.ended || aud.error != null || ( aud.currentTime != 0 && ! aud.paused ) ) ) { next = current + 1; }
+		if(p.next && current < slides.length && (p.play != true || slide_audio[slides[current]] === undefined || media.ended || media.error != null || ( media.currentTime != 0 && ! media.paused ) ) ) { next = current + 1; }
 		if(next >= slides.length) {
 			loadNextIndex(function() {
 				showSlide(p);
 			});
 			return;
 		}
+		video.pause();
+		aud.pause();
 		// just play audio if no slide change
 		if(p.play && next == current) {
-			aud.load();
-			aud.play();
+			if(video.style.visibility == 'visible') {
+				video.pause();
+				video.currentTime = 0;
+				video.play();
+			} else {
+				aud.load();
+				aud.play();
+			}
 			return;
 		}
 		current = next;
 		var slide = slides[current];
-		aud.pause();
-		img.onload = undefined;
-		if(slide_audio[slide] !== undefined) {
-			img.onload = function() {
+		var ext = (slide.indexOf('.') >= 0 ? slide.slice(slide.lastIndexOf('.')+1) : '').toLowerCase();
+		if(ext == 'mp4' || ext == 'mov' || ext == 'mts') {
+			img.style.visibility = 'hidden';
+			video.style.visibility = 'visible';
+			video.src = slide;
+			if(p.play) video.play();
+			return;
+		}
+		video.style.visibility = 'hidden';
+		img.onload = function() {
+			img.style.visibility = 'visible';
+			if(slide_audio[slide] !== undefined) {
 				aud.src = slide_audio[slide];
 				if(p.play) aud.play();
 			}
-		}
+		};
 		img.src = slide;
 	}
 	showSlide({});
