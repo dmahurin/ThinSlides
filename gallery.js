@@ -249,13 +249,14 @@ function addDeferredThumb(thumbs, href) {
   });
 }
 
-function addFolder(thumbs, href) {
-  var niceName = href.substr(0,href.length-1);
-  if (niceName.lastIndexOf("/")>=0)
-    niceName = niceName.substr(niceName.lastIndexOf("/")+1);
-  if (href.length < baseURL.length) niceName = "[BACK]";
+function addFolder(thumbs, href, niceName) {
+  if(niceName === undefined) {
+    var niceName = href.substr(0,href.length-1);
+    if (niceName.lastIndexOf("/")>=0)
+      niceName = niceName.substr(niceName.lastIndexOf("/")+1);
+  }
 
-  var a = document.createElement("A");
+  var a = document.createElement("a");
   a.href = window.location.pathname+"?"+href;
   a.innerHTML = '<div class="thumb folder"><div class="caption">'+decodeURIComponent(niceName)+'</div><div class="thumbicon">&#128193;</div></div>';
   thumbs.appendChild(a);

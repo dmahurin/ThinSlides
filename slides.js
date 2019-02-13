@@ -94,6 +94,10 @@ function showGallery(gallery) {
 	var thumbs = document.createElement("div");
 	body.appendChild(thumbs);
 
+	if( window.location.search.length > 0) {
+		var parent = window.location.search.slice(1).replace(/[^\/\?]+\/$/, '');
+		addFolder(thumbs, parent, '[BACK]');
+	}
 	for (var i in folders) {
 		addFolder(thumbs, folders[i]);
 	}
