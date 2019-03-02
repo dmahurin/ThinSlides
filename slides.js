@@ -162,6 +162,16 @@ function addFiles(files) {
 }
 
 function showSlides() {
+	if(showSlides.instance === undefined) {
+		showSlides.instance = '';
+		showSlides.instance = new showSlides();
+		return;
+	} else if(showSlides.instance) {
+		document.body = showSlides.instance.body;
+		showSlides.instance.showSlide({});
+		return;
+	}
+
 	var body = document.createElement("body");
 	body.style['margin'] = 0; body.style['height'] = '100%'; body.style['background-color'] = 'black';
 	var img = document.createElement("img");
@@ -225,8 +235,10 @@ function showSlides() {
 		};
 		img.src = slide;
 	}
+	this.showSlide = showSlide;
 	showSlide({});
 
+	this.body = body;
 	document.body = body;
 	body.addEventListener("keydown", function (e) {
 		// stop/escape
