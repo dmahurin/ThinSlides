@@ -77,6 +77,7 @@ function getEXIFThumb(url, arraybuffer, callback) {
   }
   // Move on to TIFF header
   offs += 10;
+  var tiffOffs = offs;
   var rd16, rd32;
   if (arr[offs]==0x49 && arr[offs+1]==0x49) {
     // Intel align
@@ -111,14 +112,14 @@ function getEXIFThumb(url, arraybuffer, callback) {
     if (tag==0x0112) { // JPEG orientation
       thumbOrientation = rd32(offs+i*12+8);
     }
- }
+  }
   // skip to next IFD
   offs = rd32(offs + tags*12);
   if (offs==0) {
     console.warn(url+" no second IFD.");
     return callback(url);
   }
-  offs += 12;
+  offs += tiffOffs;
   var tags = rd16(offs);
   if (tags>300) {
     console.warn(url+" too many EXIF tags ("+tags+") in second IFD!");
@@ -130,7 +131,7 @@ function getEXIFThumb(url, arraybuffer, callback) {
   for (var i=0;i<tags;i++) {
     var tag = rd16(offs+i*12);
     //console.log(tag.toString(16));
-    if (tag==0x0201) thumbOffset = rd32(offs + i*12 + 8)+12; // ?
+    if (tag==0x0201) thumbOffset = rd32(offs + i*12 + 8)+tiffOffs; // ?
     if (tag==0x0202) thumbLen = rd32(offs + i*12 + 8);
   }
   if (thumbOffset && thumbLen) {
