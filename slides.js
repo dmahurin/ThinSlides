@@ -2,7 +2,6 @@ var loaded = [];
 var folders = [];
 var current = 0;
 var slides = [];
-var slides_lookup = [];
 var slide_audio = [];
 var gallery_body;
 var gallery_top = 0;
@@ -137,27 +136,35 @@ function onThumbClicked(e) {
 }
 
 function addFiles(files) {
-	var afiles = [];
+	var basefile = [];
 	var aud = new Audio();
 	for (var i in files) {
 		var file = files[i];
+		var filebase = file.substr(0, file.lastIndexOf('.'));
+		basefile[filebase] = file;
+	}
+	for (var i in files) {
+		var file = files[i];
 		var ext = (file.indexOf('.') >= 0 ? file.slice(file.lastIndexOf('.')+1) : '').toLowerCase();
-		if ( ext == 'jpg' || ext == 'jpeg' || ext == 'png' || ext == 'mp4' || ext == 'mts' || ext == 'mov' ) {
-			if(ext == 'mp4' || ext == 'mts' || ext == 'mov') slide_audio[file] = '';
+		filebase = file.substr(0, file.lastIndexOf('.'));
+		if ( ext == 'jpg' || ext == 'jpeg' || ext == 'png') {
+			if(basefile[file] !== undefined) {
+				slide_audio[file] = basefile[file];
+			}
 			slides.push(file);
-			slides_lookup[file] = file;
-			var filebase = file.substr(0, file.lastIndexOf('.'));
-			slides_lookup[filebase] = file;
+		} else if ( ext == 'mp4' || ext == 'mts' || ext == 'mov' ) {
+			slide_audio[file] = '';
+			slides.push(file);
 		} else if ( ext == 'flac' || ext == 'wav' || ext == 'mp3' || ext == 'm4a' ) {
 			if(ext == 'flac' && aud.canPlayType('audio/ogg; codecs=flac') == '') continue;
 			if(ext == 'mp3' && aud.canPlayType('audio/mpeg') == '') continue;
-			afiles.push(file);
+			if(basefile[file] !== undefined) {
+				slide_audio[basefile[file]] = file;
+			}
+			else if(filebase.indexOf('.') < 0) {
+				slides.push(file);
+			}
 		}
-	}
-	for (var i in afiles) {
-		var file = afiles[i];
-		filebase = file.substr(0, file.lastIndexOf('.'));
-		if(slides_lookup[filebase] !== undefined) { slide_audio[slides_lookup[filebase]] = file; }
 	}
 }
 
