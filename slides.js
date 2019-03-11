@@ -110,8 +110,14 @@ function showGallery(gallery) {
 	for (var i in slides) {
 		var href = slides[i];
 		var hrefl = href.toLowerCase();
-		if (hrefl.substr(-4)==".jpg" || hrefl.substr(-5)==".jpeg" || hrefl.substr(-4)==".png" || hrefl.substr(-4)==".mp4" || hrefl.substr(-4)==".mts" || hrefl.substr(-4)==".mov") {
-			imageInfo[href] = { thumb : undefined, index: +i };
+		imageInfo[href] = { thumb : undefined, index: +i };
+		if (hrefl.substr(-4)==".jpg" || hrefl.substr(-5)==".jpeg" || hrefl.substr(-4)==".png") {
+			addDeferredThumb(thumbs, href, '&#x1f5bc;');
+		} else if (hrefl.substr(-4)==".mp4" || hrefl.substr(-4)==".mts" || hrefl.substr(-4)==".mov") {
+			addDeferredThumb(thumbs, href, '&#x1f39e;');
+		} else if (hrefl.substr(-4)==".mp3" || hrefl.substr(-5)==".flac" ) {
+			addDeferredThumb(thumbs, href, '&#x1f508;');
+		} else {
 			addDeferredThumb(thumbs, href);
 		}
 	}
