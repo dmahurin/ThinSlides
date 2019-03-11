@@ -42,6 +42,9 @@ function getThumbFromFullImage(url, callback) {
     octx.drawImage(img, 0, 0, oc.width, oc.height);
     callback(oc.toDataURL());
   };
+  img.onerror = function () {
+    callback();
+  };
 
   if (img.tagName != "VIDEO") {
   img.src = url;
@@ -232,7 +235,7 @@ function addDeferredThumb(thumbs, href, icon) {
     niceName = href;
 
   function thumbLoaded(url, rotate) {
-    if(imageInfo[url] && imageInfo[url].thumb) { return; }
+    if(url === undefined || (imageInfo[url] && imageInfo[url].thumb)) { return; }
     imageInfo[href].thumb = url;
     im.innerHTML =
       '<div class="thumbimage" style="background-image:url('+url+');transform:rotate('+rotate+'deg)"></div>'+
