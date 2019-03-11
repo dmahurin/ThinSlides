@@ -168,6 +168,7 @@ function addFiles(files) {
 				slide_audio[basefile[file]] = file;
 			}
 			else if(filebase.indexOf('.') < 0) {
+				slide_audio[file] = file;
 				slides.push(file);
 			}
 		}
@@ -201,7 +202,12 @@ function showSlides() {
 
 	body.appendChild(img);
 	body.appendChild(video);
-	var aud = new Audio();
+	var aud = document.createElement('audio');
+	aud.style.position = 'fixed';
+	aud.style.bottom = '0%';
+	aud.controls = false;
+
+	body.appendChild(aud);
 
 	function showSlide(p) {
 		var next = current;
@@ -232,10 +238,18 @@ function showSlides() {
 		var slide = slides[current];
 		var ext = (slide.indexOf('.') >= 0 ? slide.slice(slide.lastIndexOf('.')+1) : '').toLowerCase();
 		if(ext == 'mp4' || ext == 'mov' || ext == 'mts') {
+			aud.controls = false;
 			img.style.visibility = 'hidden';
 			video.style.visibility = 'visible';
 			video.src = slide;
 			if(p.play) video.play();
+			return;
+		} else if(ext == 'mp3' || ext == 'm4a' || ext == 'wav' || ext == 'wav') {
+			img.style.visibility = 'hidden';
+			video.style.visibility = 'hidden';
+			aud.src = slide;
+			aud.controls = true;
+			if(p.play) aud.play();
 			return;
 		}
 		video.style.visibility = 'hidden';
@@ -243,6 +257,7 @@ function showSlides() {
 			img.style.visibility = 'visible';
 			if(slide_audio[slide] !== undefined) {
 				aud.src = slide_audio[slide];
+				aud.controls = (aud.duration > 30);
 				if(p.play) aud.play();
 			}
 		};
