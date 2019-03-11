@@ -223,7 +223,8 @@ function getImageThumbnailVisible(elem, url, cb) {
     imageInfo[url].cb = cb;
 }
 
-function addDeferredThumb(thumbs, href) {
+function addDeferredThumb(thumbs, href, icon) {
+  if(icon === undefined) { icon = '&#8987;'; }
   var niceName;
   if (href.lastIndexOf("/")>=0)
     niceName = href.substr(href.lastIndexOf("/")+1);
@@ -239,7 +240,7 @@ function addDeferredThumb(thumbs, href) {
   }
 
   var im = document.createElement("DIV");
-  im.innerHTML = '<div class="caption">'+decodeURIComponent(niceName)+'</div><div class="thumbicon">&#8987;</div>';
+  im.innerHTML = '<div class="caption">'+decodeURIComponent(niceName)+'</div><div class="thumbicon">' + icon + '</div>';
   im.className = "thumb";
   im.setAttribute("href", href);
   im.onclick = onThumbClicked;
