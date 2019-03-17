@@ -17,6 +17,7 @@ function loadNextIndex(cb) {
 	var req = new XMLHttpRequest();
 	req.onload = function() { indexLoaded(url, req.responseXML); if(cb !== undefined) { cb(); }};
 	req.open("GET", url == '' ? './' : url);
+	req.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 	req.responseType = "document";
 	req.send();
 }
