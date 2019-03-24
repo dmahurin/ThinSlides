@@ -3,6 +3,7 @@ var folders = [];
 var current = 0;
 var slides = [];
 var slide_audio = [];
+var folder_image = [];
 var gallery_body;
 var gallery_top = 0;
 
@@ -35,8 +36,14 @@ function indexLoaded(dirURL, responseXML) {
 		// change url to relative and skip non children
 		if(url.indexOf(basePath) === 0) { url = url.slice(basePath.length); } else { continue; }
 		if(url.indexOf(dirURL) !== 0 || url.length <= dirURL.length) continue;
+
 		if(url.charAt(dirURL.length) == '.') { continue; }
+		var img = elements[i].getElementsByTagName('img');
 		if ( url[url.length-1]=="/") {
+			if(img.length > 0) {
+				img = img[0].src;
+				folder_image[url] = img
+			}
 			newdirs.push(url);
 		} else {
 			files.push(url);
@@ -106,7 +113,7 @@ function showGallery(gallery) {
 		addFolder(thumbs, parent, '[BACK]');
 	}
 	for (var i in folders) {
-		addFolder(thumbs, folders[i]);
+		addFolder(thumbs, folders[i], undefined, folder_image[folders[i]]);
 	}
 	for (var i in slides) {
 		var href = slides[i];

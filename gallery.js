@@ -259,7 +259,7 @@ function addDeferredThumb(thumbs, href, icon) {
   });
 }
 
-function addFolder(thumbs, href, niceName) {
+function addFolder(thumbs, href, niceName, image) {
   if(niceName === undefined) {
     var niceName = href.substr(0,href.length-1);
     if (niceName.lastIndexOf("/")>=0)
@@ -268,6 +268,20 @@ function addFolder(thumbs, href, niceName) {
 
   var a = document.createElement("a");
   a.href = window.location.pathname+"?"+href;
-  a.innerHTML = '<div class="thumb folder"><div class="caption">'+decodeURIComponent(niceName)+'</div><div class="thumbicon">&#128193;</div></div>';
+  var im = document.createElement("div");
+  im.innerHTML = '<div class="caption">'+decodeURIComponent(niceName)+'</div><div class="thumbicon">&#128193;</div>';
+  im.className = "thumb folder";
+  a.appendChild(im);
+
+  if(image !== undefined) {
+    imageInfo[image] = {};
+    getImageThumbnailVisible(a, image, function(url,rotate) {
+      if(url === undefined || (imageInfo[url] && imageInfo[url].thumb)) { return; }
+      imageInfo[image].thumb = url;
+      im.innerHTML =
+        '<div class="thumbimage" style="background-image:url('+url+');transform:rotate('+rotate+'deg)"></div>'+
+        '<div class="caption">'+decodeURIComponent(niceName)+'</div>';
+   });
+  }
   thumbs.appendChild(a);
 }
