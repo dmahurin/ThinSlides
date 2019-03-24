@@ -26,6 +26,13 @@ Setup
 * Optionally copy index.php. This provides index for slides.html or passes slides.html contents
 * Open slides.html (or path with slides.html if index.php is installed)
 
+Web Server
+----------
+* Apache with PHP module
+* python: python -m SimpleHTTPServer 8000
+* php: php -S localhost:8000 -file index.php
+* lightttp: tmpconf=$(mktemp); ( echo 'server.document-root = "'"$(pwd)"'"'; echo 'server.port = "8000"'; echo 'dir-listing.activate = "enable"'; echo 'include "/usr/local/etc/lighttpd/conf.d/mime.conf"' ) > "$tmpconf" ; lighttpd  -D -f "$tmpconf"; rm "$tmpconf"
+
 Usage
 -----
 
