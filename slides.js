@@ -207,10 +207,16 @@ function showSlides() {
 		'.fullscreen { display:block; width:100%; height:100%; margin:0 auto; object-fit: contain; position: absolute; left: 0; top: 0 }'
 	));
 
+
 	body.appendChild(style);
 
 	body.appendChild(img);
 	body.appendChild(video);
+	var text = document.createElement('div');
+	text.style.color = 'white';
+	text.style.position = 'fixed';
+	text.style.top = '0%';
+	body.appendChild(text);
 	var aud = document.createElement('audio');
 	aud.style.position = 'fixed';
 	aud.style.bottom = '0%';
@@ -231,6 +237,7 @@ function showSlides() {
 		}
 		video.pause();
 		aud.pause();
+		text.text = slides[current];
 		// just play audio if no slide change
 		if(p.play && next == current) {
 			if(video.style.visibility == 'visible') {
@@ -245,12 +252,14 @@ function showSlides() {
 		}
 		current = next;
 		var slide = slides[current];
+		var slidename = decodeURIComponent(slide.substr(slide.lastIndexOf('/')+1));
 		var ext = (slide.indexOf('.') >= 0 ? slide.slice(slide.lastIndexOf('.')+1) : '').toLowerCase();
 		if(ext == 'mp4' || ext == 'mov' || ext == 'mts') {
 			aud.controls = false;
 			img.style.visibility = 'hidden';
 			video.style.visibility = 'visible';
 			video.src = slide;
+			text.innerText = slidename;
 			if(p.play) video.play();
 			return;
 		} else if(ext == 'mp3' || ext == 'm4a' || ext == 'wav' || ext == 'wav') {
@@ -258,12 +267,14 @@ function showSlides() {
 			video.style.visibility = 'hidden';
 			aud.src = slide;
 			aud.controls = true;
+			text.innerText = slidename;
 			if(p.play) aud.play();
 			return;
 		}
 		video.style.visibility = 'hidden';
 		img.onload = function() {
 			img.style.visibility = 'visible';
+			text.innerText = slidename;
 			if(slide_audio[slide] !== undefined) {
 				aud.src = slide_audio[slide];
 				aud.controls = (aud.duration > 30);
