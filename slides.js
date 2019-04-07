@@ -38,6 +38,7 @@ function indexLoaded(dirURL, responseXML) {
 		if(url.indexOf(dirURL) !== 0 || url.length <= dirURL.length) continue;
 
 		if(url.charAt(dirURL.length) == '.') { continue; }
+		if(url.charAt(dirURL.length) == '@') { continue; }
 		var img = elements[i].getElementsByTagName('img');
 		if ( url[url.length-1]=="/") {
 			if(img.length > 0) {
