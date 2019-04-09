@@ -163,7 +163,7 @@ function getImageThumbnail(url, finishedCb, thumbCb) {
   var xhr = new XMLHttpRequest;
   xhr.open('GET', url, true);
   xhr.responseType = "arraybuffer";
-  xhr.setRequestHeader('Range', 'bytes=0-60000');
+  xhr.setRequestHeader('Range', 'bytes=0-65535');
   xhr.onload = function (oEvent) {
     getEXIFThumb(url, xhr.response, function(url, rotation) {
       thumbCb(url, rotation);
