@@ -17,7 +17,7 @@ function loadNextIndex(cb) {
 	loaded[url] = 1;
 	var req = new XMLHttpRequest();
 	req.onload = function() { indexLoaded(url, req.responseXML); if(cb !== undefined) { cb(); }};
-	req.open("GET", url == '' ? './' : url);
+	req.open('GET', window.location.pathname.slice(-1) == '/' ? (url == '' ? '?/' : '?' + url) : (url == '' ? './' : url));
 	req.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 	req.responseType = "document";
 	req.send();
@@ -109,8 +109,8 @@ function showGallery(gallery) {
 	var thumbs = document.createElement("div");
 	body.appendChild(thumbs);
 
-	if( window.location.search.length > 0) {
-		var parent = window.location.search.slice(1).replace(/[^\/\?]+\/$/, '');
+	if( window.location.search.length > 1) {
+		var parent = window.location.search.slice(1).replace(/[^\/]+\/?$/, '');
 		addFolder(thumbs, parent, '[BACK]');
 	}
 	for (var i in folders) {
