@@ -267,7 +267,7 @@ function addFolder(thumbs, href, niceName, image) {
   }
 
   var a = document.createElement("a");
-  a.href = window.location.pathname+"?"+href;
+  a.href = window.location.pathname+"?"+href.slice(0,-1);
   var im = document.createElement("div");
   im.innerHTML = '<div class="caption">'+decodeURIComponent(niceName)+'</div><div class="thumbicon">&#128193;</div>';
   im.className = "thumb folder";
