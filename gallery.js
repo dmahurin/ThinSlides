@@ -82,6 +82,7 @@ function getEXIFThumb(url, arraybuffer, callback) {
   offs += 10;
   var tiffOffs = offs;
   var rd16, rd32;
+  var rdn = function(a, n) { return Array.from(arr.slice(a, a+n)).map(String.fromCharCode).join(''); }
   if (arr[offs]==0x49 && arr[offs+1]==0x49) {
     // Intel align
     rd16 = function(a) { return arr[a] | (arr[a+1]<<8); }
@@ -109,11 +110,16 @@ function getEXIFThumb(url, arraybuffer, callback) {
   offs += 2;
   // iterate over tags
   var thumbOrientation;
+  var dateTaken;
   for (var i=0;i<tags;i++) {
     var tag = rd16(offs+i*12);
     //console.log(tag.toString(16));
     if (tag==0x0112) { // JPEG orientation
       thumbOrientation = rd32(offs+i*12+8);
+    } else if(tag==0x132) { // date taken
+      var len = rd32(offs+i*12+4);
+      var loc = tiffOffs + rd32(offs+i*12 + 8);
+      dateTaken = rdn(loc, len).replace(/\d\d/, "x")
     }
   }
   // skip to next IFD
@@ -145,7 +151,7 @@ function getEXIFThumb(url, arraybuffer, callback) {
     var imageURL = urlCreator.createObjectURL( blob );
     var rotation = 0;
     if (thumbOrientation==6) rotation = 90;
-    callback(imageURL, rotation);
+    callback(imageURL, rotation, dateTaken);
   } else {
     /* No thumbnail */
     callback(url);
@@ -166,8 +172,8 @@ function getImageThumbnail(url, finishedCb, thumbCb) {
   xhr.responseType = "arraybuffer";
   xhr.setRequestHeader('Range', 'bytes=0-65535');
   xhr.onload = function (oEvent) {
-    getEXIFThumb(url, xhr.response, function(url, rotation) {
-      thumbCb(url, rotation);
+    getEXIFThumb(url, xhr.response, function(url, rotation, dateTaken) {
+      thumbCb(url, rotation, dateTaken);
       finishedCb();
     });
   };
@@ -214,6 +220,15 @@ function isVisible(elem) {
 function getImageThumbnailVisibleCheckAll() {
    // if unthrottled images are visible, then send to getImageThumbnailThrottled
    for (var url in imageInfo) {
+       var ext = (url.indexOf('.') >= 0 ? url.slice(url.lastIndexOf('.')+1) : '').toLowerCase();
+       if(!(ext == 'jpg' || ext == 'jpeg')) continue;
+       if(imageInfo[url].thumb === undefined && isVisible(imageInfo[url].elem)) {
+           // change thumb to '' to prevent duplicate thumb load
+           imageInfo[url].thumb = '';
+           getImageThumbnailThrottled(url, imageInfo[url].cb);
+       }
+   }
+   for (var url in imageInfo) {
        if(imageInfo[url].thumb === undefined && isVisible(imageInfo[url].elem)) {
            // change thumb to '' to prevent duplicate thumb load
            imageInfo[url].thumb = '';
@@ -235,12 +250,12 @@ function addDeferredThumb(thumbs, href, icon) {
   else
     niceName = href;
 
-  function thumbLoaded(url, rotate) {
-    if(url === undefined) { return; }
+  function thumbLoaded(url, rotate, dateTaken) {
+    if(url === undefined || (imageInfo[url] && imageInfo[url].thumb)) { return; }
     imageInfo[href].thumb = url;
     im.innerHTML =
       '<div class="thumbimage" style="background-image:url('+url+');transform:rotate('+rotate+'deg)"></div>'+
-      '<div class="caption">'+decodeURIComponent(niceName)+'</div>';
+      '<div class="caption">'+decodeURIComponent(niceName)+(dateTaken !== undefined ? '<br><font size="-5">' + dateTaken: '')+'</font></div>';
   }
 
   var im = document.createElement("DIV");
@@ -249,13 +264,13 @@ function addDeferredThumb(thumbs, href, icon) {
   im.setAttribute("href", href);
   im.onclick = onThumbClicked;
   im = thumbs.appendChild(im);
-  getImageThumbnailVisible(im, href, function(url,rotate) {
+  getImageThumbnailVisible(im, href, function(url,rotate, dateTaken) {
     if (url == href) {
       // We use getImageThumbnailThrottled so we can make sure
       // that full images get loaded AFTER all the thumbnails
       getImageThumbnailThrottled(url, thumbLoaded, true);
     } else {
-      thumbLoaded(url, rotate);
+      thumbLoaded(url, rotate, dateTaken);
     }
   });
 }
