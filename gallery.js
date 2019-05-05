@@ -51,7 +51,7 @@ function getThumbFromFullImage(url, callback) {
   } else {
   img.addEventListener('loadeddata', img.onload);
   img.preload = 'metadata';
-  img.controls = true;
+  img.controls = false;
   img.muted = true;
   img.src = url;
   }
