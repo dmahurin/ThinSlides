@@ -82,7 +82,7 @@ function getEXIFThumb(url, arraybuffer, callback) {
   offs += 10;
   var tiffOffs = offs;
   var rd16, rd32;
-  var rdn = function(a, n) { return Array.from(arr.slice(a, a+n)).map(String.fromCharCode).join(''); }
+  var rdn = function(a, n) { return arr.slice(a, a+n); }
   if (arr[offs]==0x49 && arr[offs+1]==0x49) {
     // Intel align
     rd16 = function(a) { return arr[a] | (arr[a+1]<<8); }
@@ -119,7 +119,10 @@ function getEXIFThumb(url, arraybuffer, callback) {
     } else if(tag==0x132) { // date taken
       var len = rd32(offs+i*12+4);
       var loc = tiffOffs + rd32(offs+i*12 + 8);
-      dateTaken = rdn(loc, len).replace(/\d\d/, "x")
+      dateTaken = rdn(loc, len);
+      dateTaken = String.fromCharCode(...dateTaken);
+      dateTaken = dateTaken.split(/[: ]/);
+      dateTaken = dateTaken.slice(0,3).join('-') + ' ' + dateTaken.slice(3,6).join(':')
     }
   }
   // skip to next IFD
@@ -173,7 +176,7 @@ function getImageThumbnail(url, finishedCb, thumbCb) {
   xhr.setRequestHeader('Range', 'bytes=0-65535');
   xhr.onload = function (oEvent) {
     getEXIFThumb(url, xhr.response, function(url, rotation, dateTaken) {
-      thumbCb(url, rotation, dateTaken);
+      thumbCb(url, rotation, image === undefined ? dateTaken : undefined);
       finishedCb();
     });
   };
