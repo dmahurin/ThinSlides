@@ -47,7 +47,7 @@ function getThumbFromFullImage(url, callback) {
   };
 
   if (img.tagName != "VIDEO") {
-  img.src = url;
+  img.src = imageInfo[url].image || url;
   } else {
   img.addEventListener('loadeddata', img.onload);
   img.preload = 'metadata';
@@ -159,9 +159,10 @@ function getImageThumbnail(url, finishedCb, thumbCb) {
       finishedCb();
       return;
   }
+  var image = imageInfo[url].image;
 
   var xhr = new XMLHttpRequest;
-  xhr.open('GET', url, true);
+  xhr.open('GET', image || url, true);
   xhr.responseType = "arraybuffer";
   xhr.setRequestHeader('Range', 'bytes=0-65535');
   xhr.onload = function (oEvent) {
@@ -235,7 +236,7 @@ function addDeferredThumb(thumbs, href, icon) {
     niceName = href;
 
   function thumbLoaded(url, rotate) {
-    if(url === undefined || (imageInfo[url] && imageInfo[url].thumb)) { return; }
+    if(url === undefined) { return; }
     imageInfo[href].thumb = url;
     im.innerHTML =
       '<div class="thumbimage" style="background-image:url('+url+');transform:rotate('+rotate+'deg)"></div>'+
