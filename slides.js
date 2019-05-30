@@ -43,7 +43,7 @@ function indexLoaded(dirURL, responseXML) {
 		if ( url[url.length-1]=="/") {
 			if(img.length > 0) {
 				img = img[0].src;
-				folder_image[url] = img
+				folder_image[url] = img;
 			}
 			newdirs.push(url);
 		} else {
@@ -170,7 +170,7 @@ function addFiles(files) {
 		} else if ( ext == 'mp4' || ext == 'mts' || ext == 'mov' ) {
 			slide_audio[file] = '';
 			slides.push(file);
-		} else if ( ext == 'flac' || ext == 'wav' || ext == 'mp3' || ext == 'm4a' ) {
+		} else if ( ext == 'flac' || ext == 'wav' || ext == 'mp3' || ext == 'm4a' || ext == 'flac' ) {
 			if(ext == 'flac' && aud.canPlayType('audio/ogg; codecs=flac') == '') continue;
 			if(ext == 'mp3' && aud.canPlayType('audio/mpeg') == '') continue;
 			if(basefile[file] !== undefined) {
