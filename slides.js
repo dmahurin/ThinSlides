@@ -3,6 +3,7 @@ var folders = [];
 var current = 0;
 var slides = [];
 var slide_audio = [];
+var path_image = [];
 var folder_image = [];
 var gallery_body;
 var gallery_top = 0;
@@ -36,6 +37,12 @@ function indexLoaded(dirURL, responseXML) {
 		// change url to relative and skip non children
 		if(url.indexOf(basePath) === 0) { url = url.slice(basePath.length); } else { continue; }
 		if(url.indexOf(dirURL) !== 0 || url.length <= dirURL.length) continue;
+
+		var name = url.substring(url.lastIndexOf('/') + 1);
+		if(name == 'cover.jpg' || name == '.cover.jpg' || name == 'folder.jpg' || name == '.folder.jpg') {
+			path_image[dirURL] = url;
+			continue;
+		}
 
 		if(url.charAt(dirURL.length) == '.') { continue; }
 		if(url.charAt(dirURL.length) == '@') { continue; }
@@ -125,6 +132,7 @@ function showGallery(gallery) {
 		} else if (hrefl.substr(-4)==".mp4" || hrefl.substr(-4)==".mts" || hrefl.substr(-4)==".mov") {
 			addDeferredThumb(thumbs, href, '&#x1f39e;');
 		} else if (hrefl.substr(-4)==".mp3" || hrefl.substr(-5)==".flac" ) {
+			imageInfo[href].image = path_image[href] || path_image[href.slice(0, href.lastIndexOf('/') + 1)];
 			addDeferredThumb(thumbs, href, '&#x1f508;');
 		} else {
 			addDeferredThumb(thumbs, href);
@@ -155,28 +163,35 @@ function addFiles(files) {
 	var aud = new Audio();
 	for (var i in files) {
 		var file = files[i];
-		var filebase = file.substr(0, file.lastIndexOf('.'));
-		basefile[filebase] = file;
+		basefile[file] = '';
+	}
+	for (var i in files) {
+		var file = files[i];
+		var filebase = file.substring(0, file.lastIndexOf('.'));
+		if(filebase != '' && basefile[filebase] === '' ) {
+			basefile[file] = filebase;
+		}
 	}
 	for (var i in files) {
 		var file = files[i];
 		var ext = (file.indexOf('.') >= 0 ? file.slice(file.lastIndexOf('.')+1) : '').toLowerCase();
-		filebase = file.substr(0, file.lastIndexOf('.'));
 		if ( ext == 'jpg' || ext == 'jpeg' || ext == 'png') {
-			if(basefile[file] !== undefined) {
-				slide_audio[file] = basefile[file];
+			// .mp3.jpg
+			if(basefile[file] != '') {
+				path_image[basefile[file]] = file;
+			} else {
+				slides.push(file);
 			}
-			slides.push(file);
 		} else if ( ext == 'mp4' || ext == 'mts' || ext == 'mov' ) {
-			slide_audio[file] = '';
 			slides.push(file);
-		} else if ( ext == 'flac' || ext == 'wav' || ext == 'mp3' || ext == 'm4a' || ext == 'flac' ) {
+		} else if ( ext == 'flac' || ext == 'wav' || ext == 'mp3' || ext == 'm4a' ) {
 			if(ext == 'flac' && aud.canPlayType('audio/ogg; codecs=flac') == '') continue;
 			if(ext == 'mp3' && aud.canPlayType('audio/mpeg') == '') continue;
-			if(basefile[file] !== undefined) {
+
+			// .jpg.mp3
+			if(basefile[file] != '') {
 				slide_audio[basefile[file]] = file;
-			}
-			else if(filebase.indexOf('.') < 0) {
+			} else {
 				slide_audio[file] = file;
 				slides.push(file);
 			}
@@ -252,6 +267,7 @@ function showSlides() {
 		}
 		current = next;
 		var slide = slides[current];
+		var image = path_image[slide] || path_image[slide.slice(0, slide.lastIndexOf('/') + 1)];
 		var slidename = decodeURIComponent(slide.substr(slide.lastIndexOf('/')+1));
 		var ext = (slide.indexOf('.') >= 0 ? slide.slice(slide.lastIndexOf('.')+1) : '').toLowerCase();
 		if(ext == 'mp4' || ext == 'mov' || ext == 'mts') {
@@ -262,7 +278,7 @@ function showSlides() {
 			text.innerText = slidename;
 			if(p.play) video.play();
 			return;
-		} else if(ext == 'mp3' || ext == 'm4a' || ext == 'wav' || ext == 'wav') {
+		} else if(image === undefined && (ext == 'mp3' || ext == 'm4a' || ext == 'wav' || ext == 'wav' || ext == 'flac')) {
 			img.style.visibility = 'hidden';
 			video.style.visibility = 'hidden';
 			aud.src = slide;
@@ -277,11 +293,11 @@ function showSlides() {
 			text.innerText = slidename;
 			if(slide_audio[slide] !== undefined) {
 				aud.src = slide_audio[slide];
-				aud.controls = (aud.duration > 30);
+				aud.controls = image !== undefined || (aud.duration > 30);
 				if(p.play) aud.play();
 			}
 		};
-		img.src = slide;
+		img.src = image || slide;
 	}
 	this.showSlide = showSlide;
 	showSlide({});
