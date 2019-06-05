@@ -288,6 +288,7 @@ function showSlides() {
 			return;
 		}
 		video.style.visibility = 'hidden';
+		aud.controls = false;
 		img.onload = function() {
 			img.style.visibility = 'visible';
 			text.innerText = slidename;
