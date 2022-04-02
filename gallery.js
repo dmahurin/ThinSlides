@@ -170,17 +170,12 @@ function getImageThumbnail(url, finishedCb, thumbCb) {
   }
   var image = imageInfo[url].image;
 
-  var xhr = new XMLHttpRequest;
-  xhr.open('GET', image || url, true);
-  xhr.responseType = "arraybuffer";
-  xhr.setRequestHeader('Range', 'bytes=0-65535');
-  xhr.onload = function (oEvent) {
-    getEXIFThumb(url, xhr.response, function(url, rotation, dateTaken) {
+  fetch(image || url, { headers: { range: 'bytes=0-65535'}}).then(response => response.arrayBuffer().then(data => {
+    getEXIFThumb(url, data, function(url, rotation, dateTaken) {
       thumbCb(url, rotation, image === undefined ? dateTaken : undefined);
       finishedCb();
     });
-  };
-  xhr.send(null);
+  }));
 }
 
 function getImageThumbnailThrottled(url, cb, passURL) {

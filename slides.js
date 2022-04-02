@@ -16,12 +16,12 @@ function loadNextIndex(cb) {
 	if(loaded[url] !== undefined) { return; }
 
 	loaded[url] = 1;
-	var req = new XMLHttpRequest();
-	req.onload = function() { indexLoaded(url, req.responseXML); if(cb !== undefined) { cb(); }};
-	req.open('GET', window.location.pathname.slice(-1) == '/' ? (url == '' ? '?/' : '?' + url) : (url == '' ? './' : url));
-	req.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-	req.responseType = "document";
-	req.send();
+	fetch(window.location.pathname.slice(-1) == '/' ? (url == '' ? '?/' : '?' + url) : (url == '' ? './' : url),
+		{headers: {'X-Requested-With': 'XMLHttpRequest'}}).then( response => {
+		response.text().then(text => {
+			text = (new window.DOMParser()).parseFromString(text, "text/html");
+		indexLoaded(url, text); if(cb !== undefined) { cb(); }});
+		});
 }
 
 function indexLoaded(dirURL, responseXML) {
@@ -32,11 +32,14 @@ function indexLoaded(dirURL, responseXML) {
 	var elements = responseXML.getElementsByTagName("a");
 	for (var i=0;i<elements.length;i++) {
 		if(elements[i].origin != window.location.origin) continue;
-		var url = elements[i].pathname;
-
+		var url = elements[i].getAttribute("href");
 		// change url to relative and skip non children
-		if(url.indexOf(basePath) === 0) { url = url.slice(basePath.length); } else { continue; }
-		if(url.indexOf(dirURL) !== 0 || url.length <= dirURL.length) continue;
+		if (url[0] == '/') {
+			if(url.indexOf(basePath) === 0) { url = url.slice(basePath.length); } else { continue; }
+			if (url.indexOf(dirURL) !== 0 ) { continue; }
+		} else if (url.length < 2 || url.lastIndexOf('/', url.length - 2) < 0) {
+			url = dirURL + url;
+		}
 
 		var name = url.substring(url.lastIndexOf('/') + 1);
 		if(name == 'cover.jpg' || name == '.cover.jpg' || name == 'folder.jpg' || name == '.folder.jpg') {
