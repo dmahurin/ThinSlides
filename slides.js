@@ -214,24 +214,16 @@ function showSlides() {
 	}
 
 	var body = document.createElement("body");
-	body.style['margin'] = 0; body.style['height'] = '100%'; body.style['background-color'] = 'black';
+	body.style['margin'] = 0; body.style['height'] = '100%';
 	var img = document.createElement("img");
 	img.className = 'fullscreen';
 	var video = document.createElement("video");
 	video.className = 'fullscreen';
 	video.style.visibility = 'hidden';
-	var style = document.createElement('style');
-	style.appendChild(document.createTextNode(
-		'.fullscreen { display:block; width:100%; height:100%; margin:0 auto; object-fit: contain; position: absolute; left: 0; top: 0 }'
-	));
-
-
-	body.appendChild(style);
 
 	body.appendChild(img);
 	body.appendChild(video);
 	var text = document.createElement('div');
-	text.style.color = 'white';
 	text.style.position = 'fixed';
 	text.style.top = '0%';
 	body.appendChild(text);
