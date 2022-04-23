@@ -170,7 +170,15 @@ function getImageThumbnail(url, finishedCb, thumbCb) {
   }
   var image = imageInfo[url].image;
 
-  fetch(image || url, { headers: { range: 'bytes=0-65535'}}).then(response => response.arrayBuffer().then(data => {
+var oencrypt_options;
+var image_fetch = typeof(oencrypt) !== 'undefined' && oencrypt.fetch !== undefined ? oencrypt.fetch : fetch;
+
+if((!image) && (url.substr(-8)==".jpg.aes" || url.substr(-8)==".aes.jpg" || url.substr(-12)==".jpg.aes.bin")) {
+  var key = localStorage.getItem("key");
+  var password = sessionStorage.getItem("password");
+  oencrypt_options = { 'password': password, 'key': key, 'cipher': 'aes-256-ctr' };
+}
+  image_fetch(image || url, { headers: { range: 'bytes=0-65535'}}, oencrypt_options).then(response => response.arrayBuffer().then(data => {
     getEXIFThumb(url, data, function(url, rotation, dateTaken) {
       thumbCb(url, rotation, image === undefined ? dateTaken : undefined);
       finishedCb();

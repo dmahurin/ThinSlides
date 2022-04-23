@@ -20,7 +20,14 @@ function loadNextIndex(cb) {
 		{headers: {'X-Requested-With': 'XMLHttpRequest'}}).then( response => {
 		response.text().then(text => {
 			text = (new window.DOMParser()).parseFromString(text, "text/html");
-		indexLoaded(url, text); if(cb !== undefined) { cb(); }});
+		var need_decrypt = indexLoaded(url, text);
+			if(cb !== undefined) {
+				if(need_decrypt) {
+					get_key_password(document.body).then(r => {cb(); });
+				} else {
+					cb();
+				}
+			}});
 		});
 }
 
@@ -33,6 +40,9 @@ function indexLoaded(dirURL, responseXML) {
 	for (var i=0;i<elements.length;i++) {
 		if(elements[i].origin != window.location.origin) continue;
 		var url = elements[i].getAttribute("href");
+		if(url.slice(0,2) == './') {
+			url = url.slice(2);
+		}
 		// change url to relative and skip non children
 		if (url[0] == '/') {
 			if(url.indexOf(basePath) === 0) { url = url.slice(basePath.length); } else { continue; }
@@ -61,7 +71,7 @@ function indexLoaded(dirURL, responseXML) {
 		}
 	}
 	folders = newdirs.concat(folders);
-	addFiles(files);
+	return addFiles(files);
 }
 
 function showIndex(url) {
@@ -130,7 +140,7 @@ function showGallery(gallery) {
 		var href = slides[i];
 		var hrefl = href.toLowerCase();
 		imageInfo[href] = { thumb : undefined, index: +i };
-		if (hrefl.substr(-4)==".jpg" || hrefl.substr(-5)==".jpeg" || hrefl.substr(-4)==".png") {
+		if (hrefl.substr(-4)==".jpg" || hrefl.substr(-5)==".jpeg" || hrefl.substr(-4)==".png" || hrefl.substr(-8)==".jpg.aes" || hrefl.substr(-8)==".aes.jpg" || hrefl.substr(-12)==".jpg.aes.bin") {
 			addDeferredThumb(thumbs, href, '&#x1f5bc;');
 		} else if (hrefl.substr(-4)==".mp4" || hrefl.substr(-4)==".mts" || hrefl.substr(-4)==".mov") {
 			addDeferredThumb(thumbs, href, '&#x1f39e;');
@@ -162,6 +172,8 @@ function onThumbClicked(e) {
 }
 
 function addFiles(files) {
+	var need_decrypt = false;
+
 	var basefile = [];
 	var aud = new Audio();
 	for (var i in files) {
@@ -177,7 +189,10 @@ function addFiles(files) {
 	}
 	for (var i in files) {
 		var file = files[i];
-		var ext = (file.indexOf('.') >= 0 ? file.slice(file.lastIndexOf('.')+1) : '').toLowerCase();
+		var exts = (file.indexOf('.') >= 0 ? file.slice(file.indexOf('.')+1) : '').toLowerCase().split('.');
+		if ( exts[exts.length -1] == 'bin') { exts.pop(); }
+		if ( exts[exts.length -1] == 'aes') { need_decrypt = true; exts.pop(); }
+		var ext = exts[exts.length-1];
 		if ( ext == 'jpg' || ext == 'jpeg' || ext == 'png') {
 			// .mp3.jpg
 			if(basefile[file] != '') {
@@ -200,6 +215,113 @@ function addFiles(files) {
 			}
 		}
 	}
+	return need_decrypt;
+}
+
+function get_key_password(body) {
+	var key = localStorage.getItem("key");
+	var password = sessionStorage.getItem("password");
+
+	if(key != null && password != null) {
+		return new Promise((resolve, reject) => {
+			resolve();
+		});
+	}
+
+	function add_input_password(form, id, label_text) {
+		var label = document.createElement("label");
+		label.id = id + '-label';
+		label.innerText = label_text;
+		form.appendChild(label);
+		var input = document.createElement("input");
+		input.setAttribute("type", "password");
+		input.id = id;
+		form.appendChild(input);
+		return input;
+	}
+
+	var overlay = document.createElement("div");
+	overlay.classList.add("overlay");
+
+	var form = document.createElement("form");
+
+	var key_div = document.createElement("div");
+	var key_label = document.createElement("label");
+	key_label.innerText = 'Key';
+	key_div.appendChild(key_label);
+	var key_input = document.createElement("textarea");
+	key_input.id = 'key';
+	key_div.appendChild(key_input);
+	key_div.style.display = key == null ? 'block' : 'none';
+	form.appendChild(key_div);
+
+	var key_change_button = document.createElement("button");
+	key_change_button.style.display = key == null ? 'none' : 'block';
+	key_change_button.setAttribute("type", "button");
+	key_change_button.innerText = "Re-enter Key";
+	key_change_button.addEventListener('click',function(e) {
+		key_div.style.display = 'block';
+		key_change_button.style.display = 'none';
+		change_password_button.style.display = 'none';
+	});
+	var password_input = add_input_password(form, 'password', 'Password');
+	var password_button = document.createElement("button");
+	password_button.innerText = 'Enter Password';
+	password_button.setAttribute("type", "button");
+	var change_password_div = document.createElement("div");
+	change_password_div.style.display = 'none';
+	var new_password = add_input_password(change_password_div, 'new_password', 'New Password');
+	var new_password_confirm = add_input_password(change_password_div, 'new_password_confirm', 'New Password (confirm)');
+	form.appendChild(change_password_div);
+	form.appendChild(password_button);
+	form.appendChild(key_change_button);
+	var change_password_button = document.createElement("button");
+	change_password_button.setAttribute("type", "button");
+	change_password_button.innerText = 'Change Password';
+
+	change_password_button.addEventListener('click',function(e) {
+		key_change_button.style.display = 'none';
+		change_password_button.style.display = 'none';
+		document.getElementById('password-label').innerText = 'Current Password';
+		password_button.innerText = 'Enter/Change Password';
+		change_password_div.style.display = 'block';
+	});
+
+	form.appendChild(change_password_button);
+
+	overlay.appendChild(form);
+	body.appendChild(overlay);
+
+	return new Promise((resolve, reject) => {
+		password_button.addEventListener('click',function(e) {
+			if(password_input.value === '') { return; }
+
+			if(new_password.value == '') {
+				if(key_input.value !== '') {
+					localStorage.setItem("key", key_input.value);
+				}
+				sessionStorage.setItem("password", password_input.value);
+				overlay.remove();
+				resolve();
+			} else {
+				if(new_password_confirm.value != new_password.value) {
+					alert('passwords do not match');
+					return;
+				}
+				var options = { "password": password_input.value, "new_password": new_password.value, "key": key != null ? key : undefined };
+				oencrypt.gen_key(options).catch(e => {
+					console.error(e.stack);
+					alert("key change failed " + e);
+				}).then(key => {
+					if(key === undefined) { alert('could not store key'); return; }
+					localStorage.setItem("key", oencrypt.buffer_to_base64(key));
+					sessionStorage.setItem('password', options.new_password);
+					overlay.remove();
+					resolve();
+				});
+			}
+		}, {once: true});
+	});
 }
 
 function showSlides() {
@@ -282,6 +404,7 @@ function showSlides() {
 			if(p.play) aud.play();
 			return;
 		}
+
 		video.style.visibility = 'hidden';
 		aud.controls = false;
 		img.onload = function() {
@@ -292,8 +415,27 @@ function showSlides() {
 				aud.controls = image !== undefined || (aud.duration > 30);
 				if(p.play) aud.play();
 			}
+			URL.revokeObjectURL(img.src);
 		};
-		img.src = image || slide;
+		if(slide.substr(-8)==".jpg.aes" || slide.substr(-8)==".aes.jpg" || slide.substr(-12)==".jpg.aes.bin") {
+			var password = sessionStorage.getItem("password");
+			var key = localStorage.getItem("key");
+
+			if(password !== undefined || password !== undefined) {
+				var options = { 'password': password , 'key': key, 'cipher': 'aes-256-ctr' };
+				oencrypt.fetch(slide, undefined, options)
+				.catch(e => { console.error("fetch error: " + e); })
+				.then(res => res.arrayBuffer())
+				.then(data => {
+					data = new Blob( [ data ], { type: "image/jpeg" } );
+					var urlCreator = window.URL || window.webkitURL;
+					var imageUrl = urlCreator.createObjectURL( data );
+					img.src = imageUrl;
+				});
+			}
+		} else {
+			img.src = image || slide;
+		}
 	}
 	this.showSlide = showSlide;
 	showSlide({});
