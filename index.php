@@ -5,21 +5,23 @@ if (!preg_match('/(.*\/)(index\.php)?$/', $path, $matches)) {
 	return false;
 }
 $path = $matches[1];
-// queries ending in '/' or XMLHTTPRequests will give index, otherwise, give gallery/slides
-if ((!(isset($_SERVER['QUERY_STRING']) && substr($_SERVER['QUERY_STRING'],-1) == '/')) && (!(isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest'))) {
-	if ( $_SERVER['QUERY_STRING'] == '' && !preg_match('/\?$/', $_SERVER['REQUEST_URI'])) {
-		header('Location: ?');
-		die();
-	}
-	$file = file_get_contents('./slides.html');
-	echo $file;
-	return true;
+
+// redirect to slides.html for root queries not from JavaScript/XMLHttpRequest
+if ( (!isset($_SERVER['QUERY_STRING'])) && $_SERVER['REQUEST_URI'] == '/' && (!(isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest')) && file_exists('./slides.html')){
+	header('Location: slides.html');
+	die();
 }
 
 $qpath = '';
 if(isset($_SERVER['QUERY_STRING']) && $_SERVER['QUERY_STRING'] != '/') { $qpath = $_SERVER['QUERY_STRING']; }
 $dir = substr($_SERVER["DOCUMENT_ROOT"] . urldecode($path . $qpath), 0, -1);
 $files = scandir($dir);
+
+if(file_exists("$dir/index.html")) {
+	$file = file_get_contents("$dir/index.html");
+	echo $file;
+	return true;
+}
 
 header("Content-type: text/html");
 
