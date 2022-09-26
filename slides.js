@@ -7,16 +7,17 @@ var path_image = [];
 var folder_image = [];
 var gallery_body;
 var gallery_top = 0;
+var index_dir = ('/' == window.location.pathname.slice(-1) || 'index.html' == window.location.pathname.substr(window.location.pathname.lastIndexOf("/")+1)) ? 'files/' : '';
 
 function loadNextIndex(cb) {
 	if(folders.length == 0) return;
-	var url = folders.shift();
+	var url = index_dir + folders.shift();
 
 	url = url.replace(/\?.*$/, '');
 	if(loaded[url] !== undefined) { return; }
 
 	loaded[url] = 1;
-	fetch(window.location.pathname.slice(-1) == '/' ? (url == '' ? '?/' : '?' + url) : (url == '' ? './' : url),
+	fetch(url == '' ? './' : url,
 		{headers: {'X-Requested-With': 'XMLHttpRequest'}}).then( response => {
 		response.text().then(text => {
 			text = (new window.DOMParser()).parseFromString(text, "text/html");
@@ -134,7 +135,7 @@ function showGallery(gallery) {
 		addFolder(thumbs, parent, '[BACK]');
 	}
 	for (var i in folders) {
-		addFolder(thumbs, folders[i], undefined, folder_image[folders[i]]);
+		addFolder(thumbs, folders[i].slice(index_dir.length), undefined, folder_image[folders[i]]);
 	}
 	for (var i in slides) {
 		var href = slides[i];
