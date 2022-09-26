@@ -111,6 +111,7 @@ function getEXIFThumb(url, arraybuffer, callback) {
   // iterate over tags
   var thumbOrientation;
   var dateTaken;
+  var description;
   for (var i=0;i<tags;i++) {
     var tag = rd16(offs+i*12);
     //console.log(tag.toString(16));
@@ -123,6 +124,13 @@ function getEXIFThumb(url, arraybuffer, callback) {
       dateTaken = String.fromCharCode(...dateTaken);
       dateTaken = dateTaken.split(/[: ]/);
       dateTaken = dateTaken.slice(0,3).join('-') + ' ' + dateTaken.slice(3,6).join(':')
+    } else if(tag==0x10e) { // description
+      var len = rd32(offs+i*12+4);
+      var loc = tiffOffs + rd32(offs+i*12 + 8);
+      if(len > 1) {
+        description = rdn(loc, len-1);
+        description = String.fromCharCode(...description);
+      }
     }
   }
   // skip to next IFD
@@ -154,7 +162,7 @@ function getEXIFThumb(url, arraybuffer, callback) {
     var imageURL = urlCreator.createObjectURL( blob );
     var rotation = 0;
     if (thumbOrientation==6) rotation = 90;
-    callback(imageURL, rotation, dateTaken);
+    callback(imageURL, rotation, dateTaken, description);
   } else {
     /* No thumbnail */
     callback(url);
@@ -179,8 +187,8 @@ if((!image) && (url.substr(-8)==".jpg.aes" || url.substr(-8)==".aes.jpg" || url.
   oencrypt_options = { 'password': password, 'key': key, 'cipher': 'aes-256-ctr' };
 }
   image_fetch(image || url, { headers: { range: 'bytes=0-65535'}}, oencrypt_options).then(response => response.arrayBuffer().then(data => {
-    getEXIFThumb(url, data, function(url, rotation, dateTaken) {
-      thumbCb(url, rotation, image === undefined ? dateTaken : undefined);
+    getEXIFThumb(url, data, function(url, rotation, dateTaken, description) {
+      thumbCb(url, rotation, image === undefined ? dateTaken : undefined, description);
       finishedCb();
     });
   }));
@@ -256,9 +264,11 @@ function addDeferredThumb(thumbs, href, icon) {
   else
     niceName = href;
 
-  function thumbLoaded(url, rotate, dateTaken) {
+  function thumbLoaded(url, rotate, dateTaken, caption) {
     if(url === undefined || (imageInfo[url] && imageInfo[url].thumb)) { return; }
     imageInfo[href].thumb = url;
+    imageInfo[href].date = dateTaken;
+    imageInfo[href].caption = caption;
     im.innerHTML =
       '<div class="thumbimage" style="background-image:url('+url+');transform:rotate('+rotate+'deg)"></div>'+
       '<div class="caption">'+decodeURIComponent(niceName)+(dateTaken !== undefined ? '<br><font size="-5">' + dateTaken: '')+'</font></div>';
@@ -270,13 +280,13 @@ function addDeferredThumb(thumbs, href, icon) {
   im.setAttribute("href", href);
   im.onclick = onThumbClicked;
   im = thumbs.appendChild(im);
-  getImageThumbnailVisible(im, href, function(url,rotate, dateTaken) {
+  getImageThumbnailVisible(im, href, function(url,rotate, dateTaken, caption) {
     if (url == href) {
       // We use getImageThumbnailThrottled so we can make sure
       // that full images get loaded AFTER all the thumbnails
       getImageThumbnailThrottled(url, thumbLoaded, true);
     } else {
-      thumbLoaded(url, rotate, dateTaken);
+      thumbLoaded(url, rotate, dateTaken, caption);
     }
   });
 }

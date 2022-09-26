@@ -347,8 +347,7 @@ function showSlides() {
 	body.appendChild(img);
 	body.appendChild(video);
 	var text = document.createElement('div');
-	text.style.position = 'fixed';
-	text.style.top = '0%';
+	text.className = 'slide-caption';
 	body.appendChild(text);
 	var aud = document.createElement('audio');
 	aud.style.position = 'fixed';
@@ -370,7 +369,7 @@ function showSlides() {
 		}
 		video.pause();
 		aud.pause();
-		text.text = slides[current];
+		text.text = '';
 		// just play audio if no slide change
 		if(p.play && next == current) {
 			if(video.style.visibility == 'visible') {
@@ -387,6 +386,7 @@ function showSlides() {
 		var slide = slides[current];
 		var image = path_image[slide] || path_image[slide.slice(0, slide.lastIndexOf('/') + 1)];
 		var slidename = decodeURIComponent(slide.substr(slide.lastIndexOf('/')+1));
+		slidename = imageInfo[slide].caption || '';
 		var ext = (slide.indexOf('.') >= 0 ? slide.slice(slide.lastIndexOf('.')+1) : '').toLowerCase();
 		if(ext == 'mp4' || ext == 'mov' || ext == 'mts') {
 			aud.controls = false;

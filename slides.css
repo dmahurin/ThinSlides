@@ -13,3 +13,14 @@ body {
  left: 0;
  top: 0;
 }
+
+.slide-caption {
+ width: 100%;
+ font-size: 200%;
+ position: absolute;
+ left: 0;
+ bottom: 0;
+ color: yellow;
+ text-align: center;
+ -webkit-text-stroke: 0.5px black;
+}
